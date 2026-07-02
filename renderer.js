@@ -1,4 +1,8 @@
-const { obtenerPersonas, insertarPersona } = require("./personas");
+const { obtenerPersonas, 
+        insertarPersona, 
+        actualizarPersona, 
+        eliminarPersona } 
+        = require("./personas");
 
 const btnCargar = document.getElementById("btnCargar");
 const btnGuardar = document.getElementById("btnGuardar");
@@ -10,6 +14,7 @@ const edad = document.getElementById("edad");
 const telefono = document.getElementById("telefono");
 const correo = document.getElementById("correo");
 const direccion = document.getElementById("direccion");
+let idEditar=null;
 
 btnCargar.addEventListener("click", function() {
     cargarPersonas();
@@ -28,27 +33,53 @@ btnGuardar.addEventListener("click", function() {
         return;
     }
 
-    insertarPersona(
-        nombre.value,
-        Number(edad.value),
-        telefono.value,
-        correo.value,
-        direccion.value,
-        function(error, resultado) {
+    if(idEditar===null){
+               insertarPersona(
+                    nombre.value,
+                    Number(edad.value),
+                    telefono.value,
+                    correo.value,
+                    direccion.value,
+                    function(error, resultado) {
 
-            if (error) {
-                console.error("Error al insertar persona:", error);
-                alert("Error: " + error.message);
-                return;
+                        if (error) {
+                            console.error("Error al insertar persona:", error);
+                            alert("Error: " + error.message);
+                            return;
+                        }
+
+                        alert("Persona guardada correctamente.");
+
+                        limpiarFormulario();
+                        cargarPersonas();
+
+                    }
+                );
+    }else{
+       
+        actualizarPersona(
+            idEditar,
+            nombre.value,
+            Number(edad.value),
+            telefono.value,
+            correo.value,
+            direccion.value,
+
+            
+            function(error, resultado) {
+                if (error) {
+                    console.error("Error al actualizar persona:", error);
+                    alert("Error: " + error.message);
+                    return;
+                }
+                alert("Persona actualizada correctamente.");
+                limpiarFormulario();
+                cargarPersonas();
             }
+        )
+    }
 
-            alert("Persona guardada correctamente.");
-
-            limpiarFormulario();
-            cargarPersonas();
-
-        }
-    );
+ 
 
 });
 
@@ -75,6 +106,21 @@ function cargarPersonas() {
                 <td>${persona.telefono}</td>
                 <td>${persona.correo}</td>
                 <td>${persona.direccion}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editarPersona(
+                        ${persona.id}, 
+                        '${persona.nombre}', 
+                        ${persona.edad}, 
+                        '${persona.telefono}', 
+                        '${persona.correo}', 
+                        '${persona.direccion}'
+                        )">
+                        Editar
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="borrarPersona(
+                        ${persona.id}
+                    )">Eliminar</button>
+                </td>
             `;
 
             tablaPersonas.appendChild(fila);
@@ -82,6 +128,37 @@ function cargarPersonas() {
         });
 
     });
+}
+
+function editarPersona(id, nombrePersona, edadPersona, telefonoPersona, correoPersona, direccionPersona){
+    idEditar = id;
+    nombre.value = nombrePersona;
+    edad.value = edadPersona;
+    telefono.value = telefonoPersona;
+    correo.value = correoPersona;
+    direccion.value = direccionPersona;
+
+    btnGuardar.textContent = "Actualizar";
+    btnGuardar.classList.remove("btn-success");
+    btnGuardar.classList.add("btn-warning");
+}
+
+function borrarPersona(id){
+    let confirmacion = confirm("¿Está seguro de que desea eliminar esta persona?");
+
+    if(!confirmacion){
+        return;
+    }
+    eliminarPersona(id, function(error, resultado){
+        if(error){
+            console.error("Error al eliminar persona:", error);
+            alert("Error: " + error.message);
+            return;
+        }
+        alert("Persona eliminada correctamente.");
+        cargarPersonas();
+    });
+
 }
 
 function limpiarFormulario() {
